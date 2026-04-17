@@ -1,4 +1,4 @@
-# The-Helpdesk-Deception
+# The-Helpdesk-Deception (WIP)
 
 # Scenario
 A routine support request should have ended with a reset and reassurance. Instead, the so-called “help” left behind a trail of anomalies that don’t add up.
