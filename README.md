@@ -97,3 +97,35 @@ references Defender tampering in its name, serving as a planted signal designed 
 a security control was interfered with. A `.lnk` file is a Windows shortcut — it holds no
 real configuration value and cannot disable Defender on its own. Its only purpose here is
 to **exist as a tamper hint**, making it a textbook staged indicator.
+
+---
+# Query 4: Clipboard Access Detection
+
+A KQL query was executed against `DeviceProcessEvents` for the October 1–30, 2025 timeframe,
+targeting intern-named devices for PowerShell processes containing clipboard-reading commands.
+The goal was to spot brief, opportunistic checks for readily available sensitive content.
+
+---
+
+## Key Findings
+
+The results confirm that **gab-intern-vm** was the affected device, under account **g4bri3lintern**.
+A single clipboard access event was recorded at `12:50 PM UTC on October 9, 2025`, initiated
+by **powershell.exe**.
+
+<img width="1649" height="589" alt="image" src="https://github.com/user-attachments/assets/f4a6497b-194b-40b3-b206-ba2c920692c4" />
+
+---
+
+## Initiating Process
+
+The event was driven by **powershell.exe** with the following command observed: 
+`Get-Clipboard` is a PowerShell cmdlet that reads whatever is currently stored in the system
+clipboard — this can include copied passwords, tokens, URLs, or any other sensitive content
+a user may have recently copied. The result was piped to `Out-Null`, meaning the output was
+intentionally suppressed to avoid leaving traces in logs or console output. The `try/catch`
+block wraps the command to silently swallow any errors, further reducing its visibility.
+
+The `-NoProfile` and `-Sta` flags indicate the command was designed to run quietly and
+independently, consistent with a brief, opportunistic check rather than a sustained data
+collection effort.
