@@ -66,3 +66,34 @@ powershell.exe -ExecutionPolicy Bypass -File C:\programdata\exfiltratedata.ps1
 This is highly significant. The `-ExecutionPolicy Bypass` flag was used to circumvent PowerShell's built-in script execution restrictions, and the script responsible — **exfiltratedata.ps1** — was run directly from `C:\ProgramData\`, a commonly abused directory due to its low permission requirements.
 
 ---
+# Query 3: Staged Tamper Indicator Detection
+
+A KQL query was executed against `DeviceFileEvents` for the October 1–30, 2025 timeframe,
+targeting intern-named devices for file activity initiated by interactive processes. The goal
+was to identify artifacts suggesting attempts to imply or simulate a change in security posture.
+
+---
+
+## Key Findings
+
+The results confirm that **gab-intern-vm** was the affected device, under account **g4bri3lintern**.
+A file named **DefenderTamperArtifact.lnk** was created at `12:34 PM UTC on October 9, 2025`,
+with **explorer.exe** listed as the initiating process and **Explorer.EXE** as the command line.
+
+<img width="2037" height="930" alt="image" src="https://github.com/user-attachments/assets/76a83d12-cd21-4588-a84f-b686d968f92f" />
+
+
+---
+
+## Initiating Process
+
+Unlike the other events in this dataset which were driven by PowerShell, this specific file
+was initiated by **explorer.exe** — meaning a user was physically navigating the filesystem
+when this file was created. This is the direct indicator that the file was **manually placed**,
+not dropped by a script or automated process.
+
+The filename itself is the most significant detail. `DefenderTamperArtifact.lnk` explicitly
+references Defender tampering in its name, serving as a planted signal designed to imply that
+a security control was interfered with. A `.lnk` file is a Windows shortcut — it holds no
+real configuration value and cannot disable Defender on its own. Its only purpose here is
+to **exist as a tamper hint**, making it a textbook staged indicator.
