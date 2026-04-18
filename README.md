@@ -129,3 +129,37 @@ block wraps the command to silently swallow any errors, further reducing its vis
 The `-NoProfile` and `-Sta` flags indicate the command was designed to run quietly and
 independently, consistent with a brief, opportunistic check rather than a sustained data
 collection effort.
+
+---
+# Query 5: Host Context Recon
+
+A KQL query was executed against `DeviceProcessEvents` for the October 9, 2025 timeframe,
+targeting intern-named devices for processes associated with session reconnaissance via `qwinsta`.
+The goal was to identify passive discovery activity consistent with an attacker gathering user
+and session context without modifying the system.
+
+---
+
+## Key Findings
+
+The results confirm that **gab-intern-vm** was the affected device, under account **g4bri3lintern**.
+Two session enumeration events were recorded between `12:50 and 12:51 PM UTC on October 9, 2025`,
+initiated by **cmd.exe** and **query.exe** respectively.
+<img width="1276" height="551" alt="image" src="https://github.com/user-attachments/assets/17fb7a33-4388-49ff-89e9-e21084f883af" />
+
+---
+
+## Initiating Processes
+The first event was driven by **cmd.exe** with the command `qwinsta`. The second event was
+driven by **query.exe** calling `qwinsta.exe` directly.
+`qwinsta` is a built-in Windows binary that lists active and disconnected Remote Desktop and
+terminal sessions on a host, including logged-in usernames and session states. Attackers use
+this to determine who is present on the machine, whether an administrator is active, and how
+closely the environment is being monitored — all without writing files or making any system
+changes. The two executions occurring within 45 seconds of each other suggest the actor was
+confirming results or testing alternate call paths to assess detection boundaries.
+The use of native Windows binaries with no additional flags or obfuscation is consistent with
+a quiet, living-off-the-land approach designed to blend into normal system activity and avoid
+triggering standard alerts.
+
+---
