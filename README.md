@@ -231,3 +231,45 @@ on the host, including IP addresses, subnet masks, default gateway, DNS server a
 MAC addresses. Attackers use this to understand the complete network configuration of the
 compromised host — identifying which interfaces are active, what DNS servers are in use, and
 whether the machine has a viable path to the internet.
+
+---
+
+# Query 8: Runtime Application Inventory Detection
+A KQL query was executed against `DeviceProcessEvents` for the October 1–20, 2025 timeframe,
+targeting intern-named devices for processes associated with runtime process enumeration.
+The goal was to identify attempts to inventory actively running applications on the host,
+consistent with an attacker profiling the environment before taking further action.
+
+---
+
+## Key Findings
+The results confirm that **gab-intern-vm** was the affected device, under account **g4bri3lintern**.
+A single runtime inventory event was recorded at `12:51:57 PM UTC on October 9, 2025`,
+initiated by **cmd.exe** under a parent process of **powershell.exe** with parent ID **8824**.
+
+<img width="1925" height="590" alt="image" src="https://github.com/user-attachments/assets/3fc82d51-b785-4a2a-b0b2-709ffa7e390b" />
+
+---
+
+## Initiating Process
+The event was driven by **cmd.exe** with the command `tasklist /v`. `tasklist` is a native
+Windows binary that lists all currently running processes on the host. The `/v` flag enables
+verbose output, returning additional details for each process including the session name,
+session number, memory usage, running status, the username that owns the process, and the
+window title. This gives the attacker a complete picture of everything actively running on
+the machine — far more detail than a standard process list.
+
+The parent process chain of **powershell.exe** spawning **cmd.exe** to run `tasklist /v`
+is consistent with scripted execution rather than manual activity, and aligns with the
+same parent process observed across all previous reconnaissance commands on this device.
+
+---
+
+## Analyst Notes
+`tasklist /v` is a living-off-the-land technique — a built-in Windows binary that requires
+no additional tools, makes no system modifications, and blends easily into normal
+administrative activity. The verbose flag specifically suggests the attacker wanted
+granular detail about running processes, likely to identify security tools, monitoring
+agents, or other defensive software that could interfere with follow-up actions.
+
+**MITRE ATT&CK:** `T1057` — Process Discovery
