@@ -131,6 +131,7 @@ independently, consistent with a brief, opportunistic check rather than a sustai
 collection effort.
 
 ---
+
 # Query 5: Host Context Recon
 
 A KQL query was executed against `DeviceProcessEvents` for the October 9, 2025 timeframe,
@@ -202,3 +203,31 @@ is consistent with a scripted reconnaissance routine designed to quietly assess 
 and network storage surfaces before moving to data collection or exfiltration.
 
 ---
+
+# Query 7: Network Reachability and Name Resolution Detection
+
+A KQL query was executed against `DeviceProcessEvents` for the October 8–10, 2025 timeframe,
+targeting intern-named devices for processes associated with network interface queries and
+DNS resolution checks. The goal was to identify lightweight connectivity probes consistent
+with an attacker confirming egress capability before attempting to move data off-host.
+
+---
+
+## Key Findings
+The results confirm that **gab-intern-vm** was the affected device, under account **g4bri3lintern**.
+Two network reconnaissance events were recorded within one second of each other at
+`12:51 PM UTC on October 9, 2025`, both initiated by **cmd.exe** under a parent process of
+**powershell.exe**.
+
+<img width="1849" height="622" alt="image" src="https://github.com/user-attachments/assets/f84f2006-0f87-4665-a83f-c4edf9593257" />
+
+
+---
+
+## Initiating Process
+The event at `12:51:31 PM UTC` was initiated by **cmd.exe** with the command `ipconfig /all`.
+This is a native Windows command that returns a full dump of all network interface information
+on the host, including IP addresses, subnet masks, default gateway, DNS server addresses, and
+MAC addresses. Attackers use this to understand the complete network configuration of the
+compromised host — identifying which interfaces are active, what DNS servers are in use, and
+whether the machine has a viable path to the internet.
