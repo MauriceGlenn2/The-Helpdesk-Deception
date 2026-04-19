@@ -18,7 +18,7 @@ The evidence is here. The question is whether you’ll see through the story or 
 3. Common keywords among the discovered files included “desk,” “help,” “support,” and “tool.”
 4. Intern operated machines seem to be affected to certain degree.
 
-
+<br><br><br>
 # Query 1: Identify the Most Suspicious Machine
 The KQL query shown in the screenshot was used to investigate suspicious file activity on intern-operated devices during October 2025. The query targeted `DeviceFileEvents` within the date range of October 1–30, 2025, filtering for devices with "intern" in the name and files matching keywords like "desk," "Help," "Support," and "tool."
 
@@ -37,6 +37,7 @@ Notably **7-Zip Help.lnk** across multiple days (October 6–10, 2025). All logg
 
 <img width="2068" height="931" alt="image" src="https://github.com/user-attachments/assets/03b440a0-3aae-43fb-851c-adb9b8f7566c" />
 
+<br><br><br>
 # Query 2: Initial Execution Detection
 A follow-up KQL query was executed against `DeviceFileEvents` for the same October 1–30, 2025 timeframe, this time targeting the specific file **7z2408-x64.exe** on intern-named devices. The goal was to identify what process was responsible for downloading the 7-Zip installer onto the affected machine.
 
@@ -66,6 +67,7 @@ powershell.exe -ExecutionPolicy Bypass -File C:\programdata\exfiltratedata.ps1
 This is highly significant. The `-ExecutionPolicy Bypass` flag was used to circumvent PowerShell's built-in script execution restrictions, and the script responsible — **exfiltratedata.ps1** — was run directly from `C:\ProgramData\`, a commonly abused directory due to its low permission requirements.
 
 ---
+<br><br><br>
 # Query 3: Staged Tamper Indicator Detection
 
 A KQL query was executed against `DeviceFileEvents` for the October 1–30, 2025 timeframe,
@@ -99,6 +101,7 @@ real configuration value and cannot disable Defender on its own. Its only purpos
 to **exist as a tamper hint**, making it a textbook staged indicator.
 
 ---
+<br><br><br>
 # Query 4: Clipboard Access Detection
 
 A KQL query was executed against `DeviceProcessEvents` for the October 1–30, 2025 timeframe,
@@ -131,7 +134,7 @@ independently, consistent with a brief, opportunistic check rather than a sustai
 collection effort.
 
 ---
-
+<br><br><br>
 # Query 5: Host Context Recon
 
 A KQL query was executed against `DeviceProcessEvents` for the October 9, 2025 timeframe,
@@ -164,7 +167,7 @@ a quiet, living-off-the-land approach designed to blend into normal system activ
 triggering standard alerts.
 
 ---
-
+<br><br><br>
 # Query 6: Storage Surface Mapping
 A KQL query was executed against `DeviceProcessEvents` for the October 1–30, 2025 timeframe,
 targeting intern-named devices for processes associated with local and network storage enumeration.
@@ -203,7 +206,7 @@ is consistent with a scripted reconnaissance routine designed to quietly assess 
 and network storage surfaces before moving to data collection or exfiltration.
 
 ---
-
+<br><br><br>
 # Query 7: Network Reachability and Name Resolution Detection
 
 A KQL query was executed against `DeviceProcessEvents` for the October 8–10, 2025 timeframe,
@@ -233,7 +236,7 @@ compromised host — identifying which interfaces are active, what DNS servers a
 whether the machine has a viable path to the internet.
 
 ---
-
+<br><br><br>
 # Query 8: Runtime Application Inventory Detection
 A KQL query was executed against `DeviceProcessEvents` for the October 1–20, 2025 timeframe,
 targeting intern-named devices for processes associated with runtime process enumeration.
@@ -265,11 +268,3 @@ same parent process observed across all previous reconnaissance commands on this
 
 ---
 
-## Analyst Notes
-`tasklist /v` is a living-off-the-land technique — a built-in Windows binary that requires
-no additional tools, makes no system modifications, and blends easily into normal
-administrative activity. The verbose flag specifically suggests the attacker wanted
-granular detail about running processes, likely to identify security tools, monitoring
-agents, or other defensive software that could interfere with follow-up actions.
-
-**MITRE ATT&CK:** `T1057` — Process Discovery
