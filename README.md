@@ -163,3 +163,42 @@ a quiet, living-off-the-land approach designed to blend into normal system activ
 triggering standard alerts.
 
 ---
+
+# Query 6: Storage Surface Mapping
+A KQL query was executed against `DeviceProcessEvents` for the October 1–30, 2025 timeframe,
+targeting intern-named devices for processes associated with local and network storage enumeration.
+The goal was to identify lightweight checks of available storage consistent with an attacker
+mapping where data lives as a preparatory step for collection and staging.
+
+---
+
+## Key Findings
+The results confirm that **gab-intern-vm** was the affected device, under account **g4bri3lintern**.
+Three storage enumeration events were recorded within seconds of each other at
+`12:51 PM UTC on October 9, 2025`, all initiated by **powershell.exe** and **cmd.exe**.
+
+<img width="1628" height="667" alt="image" src="https://github.com/user-attachments/assets/bc2a4a74-a78e-47ca-95af-f8597595886a" />
+
+
+---
+
+## Initiating Processes
+The first event at `12:51:17 PM UTC` was initiated by **powershell.exe** with the command
+`"cmd.exe" /c net use`. This checks for mapped network drives and active network share
+connections, revealing what network storage locations are accessible from the host.
+
+The second event at `12:51:18 PM UTC` was initiated by **powershell.exe** with the command
+`"cmd.exe" /c wmic logicaldisk get name,freespace,size`. This queries all local logical
+drives returning their drive letters, total size, and available free space — giving the
+attacker a complete picture of local storage capacity and potential staging locations.
+
+The third event at `12:51:18 PM UTC` was initiated by **cmd.exe** running
+`wmic logicaldisk get name,freespace,size` directly, confirming the same local disk
+enumeration through a slightly different call path.
+
+Both `net use` and `wmic logicaldisk` are native Windows binaries requiring no additional
+tools or downloads. Their execution within milliseconds of each other under the same account
+is consistent with a scripted reconnaissance routine designed to quietly assess both local
+and network storage surfaces before moving to data collection or exfiltration.
+
+---
