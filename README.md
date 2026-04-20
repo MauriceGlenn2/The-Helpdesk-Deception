@@ -505,3 +505,72 @@ modified twice by **Notepad.exe** — confirming the attacker opened and edited 
 file directly, likely adding content to strengthen the cover story.
 
 ---
+<br><br><br>
+# The Helpdesk Deception — Investigation Summary
+
+## Overview
+During the first half of October 2025, intern-operated devices were found exhibiting
+suspicious process and file activity originating from common directories. The affected
+machine **gab-intern-vm** under account **g4bri3lintern** was identified as the primary
+device of interest. What appeared to be a routine support session was in fact a carefully
+staged attack disguised behind legitimate-looking tool names, support-themed artifacts,
+and native Windows binaries.
+
+---
+
+## Attack Chain Summary
+
+**Initial Execution**
+The attack began with **powershell.exe** executing `exfiltratedata.ps1` from
+`C:\ProgramData\` using `-ExecutionPolicy Bypass` to circumvent script restrictions.
+This script was responsible for downloading and installing **7-Zip** onto the device —
+a tool the attacker would later use to package stolen data.
+
+**Reconnaissance**
+The attacker conducted a broad and methodical reconnaissance sweep on `October 9, 2025`
+between `12:50 and 12:52 PM UTC`. This included clipboard access via `Get-Clipboard`,
+session enumeration via `qwinsta`, storage mapping via `net use` and
+`wmic logicaldisk get name,freespace,size`, network interface discovery via `ipconfig /all`,
+DNS resolution checks via `nslookup`, runtime process inventory via `tasklist /v`, and
+privilege enumeration via `whoami /groups` and `whoami /priv`. All commands were executed
+through a suspicious **RuntimeBroker.exe** → **powershell.exe** → **cmd.exe** process
+chain — a strong indicator of process injection or abuse of a legitimate Windows component.
+
+**Staging and Exfiltration Attempt**
+At `12:58 PM UTC` the attacker created `ReconArtifacts.zip` at `C:\Users\Public\` —
+packaging the results of the reconnaissance sweep into a single archive. This was followed
+by three outbound connections to `www.msftconnecttest.com`, `example.com`, and `httpbin.org`
+— a progressive egress validation sequence confirming outbound internet access before
+simulating a data transfer over encrypted port `443`.
+
+**Persistence**
+Two persistence mechanisms were established. A scheduled task named `SupportToolUpdater`
+was created at `1:01:28 PM UTC` with a logon trigger pointing to **powershell.exe**,
+ensuring the payload re-executed on every login. A registry run key named
+`RemoteAssistUpdater` was also planted under `HKEY_CURRENT_USER\...\Run` as a backup
+persistence mechanism — though registry telemetry was unavailable in this workspace to
+confirm it directly.
+
+**Cover Story**
+To justify the activity, the attacker planted `SupportChat_log.txt` in
+`C:\Users\g4bri3lintern\Downloads\` — a fake support chat log designed to make the
+session appear legitimate. The file was opened and edited via **Notepad.exe**, confirmed
+by the automatic creation of `SupportChat_log.lnk`. Every artifact across the attack
+chain — scripts, tasks, registry keys, and documents — followed the same "Support"
+naming convention as a deliberate misdirection strategy.
+
+---
+
+## MITRE ATT&CK Coverage
+
+- `T1059.001` — PowerShell
+- `T1033` — System Owner/User Discovery
+- `T1057` — Process Discovery
+- `T1083` — File and Directory Discovery
+- `T1016` — System Network Configuration Discovery
+- `T1560` — Archive Collected Data
+- `T1074` — Data Staged
+- `T1048` — Exfiltration Over Alternative Protocol
+- `T1053.005` — Scheduled Task Persistence
+- `T1547.001` — Registry Run Key Persistence
+- `T1036` — Masquerading
