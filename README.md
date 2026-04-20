@@ -428,3 +428,36 @@ further reducing its visibility to network monitoring tools.
 
 ---
 <br><br><br>
+# Query 13: Scheduled Re-Execution Persistence
+A KQL query was executed against `DeviceEvents` for the October 5–15, 2025 timeframe,
+targeting intern-named devices for scheduled task creation and deletion events. The goal
+was to identify persistence mechanisms established by the attacker to ensure continued
+access or re-execution of malicious activity after the initial compromise.
+
+---
+
+## Key Findings
+The results confirm that **gab-intern-vm** was the affected device, under account **g4bri3lintern**.
+Multiple scheduled task events were recorded between October 7–9, 2025, including both
+legitimate system tasks and a highly suspicious task created at `1:01:28 PM UTC on
+October 9, 2025` — directly following the attacker's outbound transfer attempts.
+
+<img width="2385" height="1005" alt="image" src="https://github.com/user-attachments/assets/d4194be0-cf93-473b-81b0-632d8cd07970" />
+
+
+---
+
+## Key Event
+The most significant finding is the `ScheduledTaskCreated` event at `10/9/2025, 1:01:28 PM UTC`
+under account **g4bri3lintern**. The task name was `SupportToolUpdater` with a
+`LogonTrigger` set to execute starting `2025-10-09T13:01:00` with the action pointing to
+**powershell.exe**. This task was designed to fire automatically every time the user
+**g4bri3lintern** logged on — ensuring the attacker's PowerShell payload would re-execute
+persistently without any further manual interaction.
+
+The task name `SupportToolUpdater` is deliberately chosen to appear legitimate — mimicking
+the naming convention of real Windows update or support tools to avoid suspicion during
+casual review of scheduled tasks.
+
+---
+<br><br><br>
