@@ -309,3 +309,44 @@ This two-step pattern repeated twice across the session, suggesting the attacker
 confirming results or running the checks from different execution contexts to ensure
 accuracy.
 
+---
+<br><br><br>
+# Query 10: Proof-of-Access & Egress Validation
+A KQL query was executed against `DeviceNetworkEvents` for the October 9, 2025 timeframe,
+targeting intern-named devices for outbound network connections initiated by processes
+associated with the attacker's known parent process chain. The goal was to identify the
+first outbound destination contacted as proof of egress reachability.
+
+---
+
+## Key Findings
+The results confirm that **gab-intern-vm** was the affected device. A single outbound
+connection was recorded at `12:55:05 PM UTC on October 9, 2025`, initiated by
+**powershell.exe** under the parent process **RuntimeBroker.exe** — the same suspicious
+process chain observed consistently throughout this investigation.
+
+<img width="1612" height="515" alt="image" src="https://github.com/user-attachments/assets/5a1dded3-d39c-463d-b4da-291dbdaf6511" />
+
+
+---
+
+## Initiating Process
+The connection was driven by **powershell.exe** with the command `"powershell.exe"`,
+spawned by **RuntimeBroker.exe**. The destination contacted was `www.msftconnecttest.com`
+at IP `23.218.182.182` over port `80`.
+
+`www.msftconnecttest.com` is a legitimate Microsoft connectivity test domain that Windows
+uses to verify internet access. Attackers abuse this domain intentionally because outbound
+connections to it appear completely normal and are unlikely to trigger alerts — making it
+an ideal destination to quietly validate that the compromised host has a working outbound
+internet connection before attempting to move data off the machine.
+
+The use of **RuntimeBroker.exe** as the parent process is again highly suspicious here.
+RuntimeBroker.exe is a legitimate Windows system process that manages UWP app permissions
+and should never be spawning PowerShell processes making outbound network connections.
+Its repeated appearance as the parent process throughout this investigation strongly
+suggests it was compromised or abused as a means of masking malicious activity within
+normal system process behavior.
+
+---
+
