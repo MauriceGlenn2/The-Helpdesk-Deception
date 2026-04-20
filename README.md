@@ -349,4 +349,82 @@ suggests it was compromised or abused as a means of masking malicious activity w
 normal system process behavior.
 
 ---
+<br><br><br>
+# Query 11: Bundling and Staging Artifacts
+A KQL query was executed against `DeviceFileEvents` for the October 1–20, 2025 timeframe,
+targeting intern-named devices for zip file creation events initiated by the attacker's
+known process chain. The goal was to identify consolidation of gathered artifacts into a
+single package in preparation for exfiltration.
 
+---
+
+## Key Findings
+The results confirm that **gab-intern-vm** was the affected device, under account **g4bri3lintern**.
+A single staging event was recorded at `12:58:17 PM UTC on October 9, 2025`, initiated by
+**powershell.exe** under the parent process **RuntimeBroker.exe** — consistent with the
+same malicious process chain observed throughout this investigation.
+
+<img width="2249" height="470" alt="image" src="https://github.com/user-attachments/assets/ee70a569-b8f2-43f1-b318-3c851c8aea46" />
+
+
+---
+
+## Initiating Process
+The event was driven by **powershell.exe** spawned by **RuntimeBroker.exe** under account
+**g4bri3lintern**. The file created was `ReconArtifacts.zip` at the path
+`C:\Users\Public\ReconArtifacts.zip`.
+
+`C:\Users\Public\` is a deliberate staging choice — it is a world-readable directory
+accessible to all users on the system, making it an ideal location for temporarily storing
+data before exfiltration. The filename `ReconArtifacts.zip` strongly suggests the attacker
+deliberately packaged the results of their reconnaissance activity — including output from
+session enumeration, privilege checks, network queries, and system discovery — into a
+single archive for transfer off the host.
+
+The use of **RuntimeBroker.exe** as the parent process is again consistent with all prior
+attacker activity, confirming this file creation event is part of the same attack chain
+rather than legitimate system activity.
+
+---
+<br><br><br>
+# Query 12: Outbound Transfer Attempt (Simulated)
+A KQL query was executed against `DeviceNetworkEvents` for the October 9, 2025 timeframe,
+targeting intern-named devices for outbound network connections initiated by the attacker's
+known process chain via `RuntimeBroker.exe`. The goal was to identify outbound transfer
+attempts or egress validation activity following the staging of `ReconArtifacts.zip`.
+
+---
+
+## Key Findings
+The results confirm that **gab-intern-vm** was the affected device. Three outbound connections
+were identified initiated by **powershell.exe** under the parent process **RuntimeBroker.exe**,
+occurring between `12:55 PM and 1:00 AM UTC on October 9, 2025`. All three connections
+followed the same process chain observed consistently throughout this investigation.
+
+<img width="2345" height="729" alt="image" src="https://github.com/user-attachments/assets/4f47fc06-4d64-4385-8d05-29bb42ec81a2" />
+
+
+---
+
+## Connections Observed
+
+The first connection at `12:55:05 PM UTC` was made to `www.msftconnecttest.com` at IP
+`23.218.218.182` over port `80`. As noted in the previous query this is a Microsoft
+connectivity test domain used by the attacker to confirm outbound internet access was
+available from the compromised host.
+
+The second connection at `1:00:39 PM UTC` was made to `example.com` at IP `23.192.228.80`
+over port `80`. `example.com` is a reserved IANA domain commonly used for testing HTTP
+connectivity — its appearance here suggests the attacker was performing a secondary
+reachability check, confirming basic outbound HTTP worked before attempting a real transfer.
+
+The third and final connection at `1:00:40 PM UTC` was made to `httpbin.org` at IP
+`100.29.147.161` over port `443`. This is the most significant finding. `httpbin.org` is
+a legitimate HTTP testing service that accepts and echoes back any data sent to it.
+Attackers abuse this service to simulate exfiltration — sending data to a trusted domain
+that bypasses domain-based detection rules while confirming that outbound data transfers
+are possible from the host. The use of port `443` indicates the transfer was encrypted,
+further reducing its visibility to network monitoring tools.
+
+---
+<br><br><br>
