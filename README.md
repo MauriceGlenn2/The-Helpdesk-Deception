@@ -267,4 +267,45 @@ is consistent with scripted execution rather than manual activity, and aligns wi
 same parent process observed across all previous reconnaissance commands on this device.
 
 ---
+<br><br><br>
+# Query 9: Privilege Surface Check
+A KQL query was executed against `DeviceProcessEvents` for the October 1–20, 2025 timeframe,
+targeting intern-named devices for processes associated with privilege and group membership
+enumeration. The goal was to identify attempts by the attacker to understand what privileges
+were available to them — informing whether to proceed as a standard user or seek elevation.
+
+---
+
+## Key Findings
+The results confirm that **gab-intern-vm** was the affected device, under account **g4bri3lintern**.
+Multiple privilege enumeration events were recorded across two separate bursts on
+`October 9, 2025` — the first at `12:52 PM UTC` and the second at `12:54 PM UTC`.
+All activity was traced back to a parent process of **RuntimeBroker.exe** with parent ID **6844**.
+
+<img width="1761" height="623" alt="image" src="https://github.com/user-attachments/assets/99c8526c-1b85-4bb0-8e1b-12c0b68324df" />
+
+
+---
+
+## Initiating Process
+The very first event was recorded at `10/9/2025, 12:52:14.313 PM UTC`, initiated by
+**powershell.exe** with the command `"cmd.exe" /c whoami /groups`. This was spawned by
+**RuntimeBroker.exe** — a notable finding as RuntimeBroker.exe is a legitimate Windows
+process not expected to spawn PowerShell or command line activity, making this a strong
+indicator of process injection or abuse.
+
+Each privilege check followed a consistent two-step pattern executed in rapid succession:
+
+The first step used **powershell.exe** calling `"cmd.exe" /c whoami /groups` to enumerate
+all group memberships assigned to the current user token — revealing what Active Directory
+or local groups the attacker had access to.
+
+The second step used **cmd.exe** running `whoami /groups` directly, followed immediately
+by `whoami /priv` — enumerating all privileges assigned to the current session token such
+as `SeDebugPrivilege`, `SeImpersonatePrivilege`, or other elevated rights that could be
+abused for privilege escalation.
+
+This two-step pattern repeated twice across the session, suggesting the attacker was
+confirming results or running the checks from different execution contexts to ensure
+accuracy.
 
